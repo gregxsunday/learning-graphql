@@ -20,6 +20,10 @@ const typeDefs = gql`
   type Query {
     bugs: [Bug]
   }
+
+  type Mutation {
+    addBug(bugClass: String!, payloads: [String]): Bug
+  }
 `;
 
 const bugs = [
@@ -43,6 +47,16 @@ const resolvers = {
     Query: {
       bugs: () => bugs,
     },
+    Mutation: {
+      addBug: async (_, {bugClass, payloads}) => {
+        bug = {
+          bugClass: bugClass,
+          payloads: payloads
+        }
+        bugs.push(bug)
+        return bug
+      }
+    }
   };
 
   // The ApolloServer constructor requires two parameters: your schema

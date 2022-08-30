@@ -7,7 +7,6 @@ import { makeExecutableSchema } from "@graphql-tools/schema";
 import { WebSocketServer } from "ws";
 import { useServer } from "graphql-ws/lib/use/ws";
 import { RESTDataSource } from 'apollo-datasource-rest';
-import { createImportSpecifier } from "typescript";
 
 class BountyAPI extends RESTDataSource {
   constructor() {

@@ -6,6 +6,31 @@ import { PubSub } from "graphql-subscriptions";
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import { WebSocketServer } from "ws";
 import { useServer } from "graphql-ws/lib/use/ws";
+import { RESTDataSource } from 'apollo-datasource-rest';
+import { createImportSpecifier } from "typescript";
+
+class BountyAPI extends RESTDataSource {
+  constructor() {
+      super();
+      this.baseURL = 'http://localhost:8000/';
+  }
+
+  async getPayloads() {
+      return this.get('payload')
+  }
+
+  getPayload(payloadId) {
+      return this.get(`payload/${payloadId}`);
+  }
+
+  getBounties() {
+      return this.get('bounty');
+  }
+
+  getBounty(bountyId) {
+      return this.get(`bounty/${bountyId}`);
+  }
+}
 
 const PORT = 4000;
 const pubsub = new PubSub();
@@ -55,9 +80,30 @@ const bugs = [
   },
 ];
 // Resolver map
+
 const resolvers = {
   Query: {
-    bugs: () => bugs,
+    bugs: async (_, __, {dataSources}) => {
+      const payloads = await dataSources.bountyAPI.getPayloads();
+      let bugs = [];
+      payloads.forEach(payloadObject => {
+        let bugClass = payloadObject.bug_class;
+        let payload = payloadObject.payload;
+        let bugsIndex = bugs.findIndex((bug) => bug.bugClass === bugClass);
+        if (bugsIndex !== -1){
+          bugs[bugsIndex].payloads.push(payload)
+        } else {
+          let bug = {
+            bugClass: bugClass,
+            payloads: [
+              payload
+            ]
+          };
+          bugs.push(bug)
+        }
+      });
+      return bugs;
+    },
   },
   Mutation: {
     addBug: async (_, {bugClass, payloads}) => {
@@ -121,6 +167,11 @@ const server = new ApolloServer({
       },
     },
   ],
+  dataSources: () => {
+    return {
+      bountyAPI: new BountyAPI(),
+    };
+  },
 });
 await server.start();
 server.applyMiddleware({ app });

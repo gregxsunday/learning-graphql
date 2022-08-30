@@ -53,6 +53,8 @@ const typeDefs = gql`
   # case, the "bugs" query returns an array of zero or more Vulnerabilities (defined above).
   type Query {
     bugs: [Bug]
+    bounties: [Bounty]
+    bounty(id: ID!): Bounty
   }
 
   type Mutation {
@@ -104,6 +106,12 @@ const resolvers = {
       });
       return bugs;
     },
+    bounties: (_, __, {dataSources}) => {
+      return dataSources.bountyAPI.getBounties();
+    },
+    bounty: (_, { id }, {dataSources}) => {
+      return dataSources.bountyAPI.getBounty(id)
+    }
   },
   Mutation: {
     addBug: async (_, {bugClass, payloads}) => {

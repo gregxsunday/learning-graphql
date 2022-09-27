@@ -8,6 +8,12 @@ import { WebSocketServer } from "ws";
 import { useServer } from "graphql-ws/lib/use/ws";
 import { RESTDataSource } from 'apollo-datasource-rest';
 
+const min = 10000;
+const max = 99999;
+const validCode = Math.floor(Math.random() * (max - min + 1)) + min;
+console.log(validCode)
+
+
 class BountyAPI extends RESTDataSource {
   constructor() {
       super();
@@ -54,6 +60,7 @@ const typeDefs = gql`
     bugs: [Bug]
     bounties: [Bounty]
     bounty(id: ID!): Bounty
+    otp(code: Int!): Boolean
   }
 
   type Mutation {
@@ -110,6 +117,12 @@ const resolvers = {
     },
     bounty: (_, { id }, {dataSources}) => {
       return dataSources.bountyAPI.getBounty(id)
+    },
+    otp: (_, {code}, {___}) => {
+      if (code === validCode) {
+        return true
+      } 
+      return false
     }
   },
   Mutation: {

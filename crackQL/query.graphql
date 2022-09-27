@@ -1,0 +1,3 @@
+query {
+otp(code:{{code|int}})
+}
